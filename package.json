@@ -1,0 +1,19 @@
+{
+  "name": "gogoTester-nodejs",
+  "description": "gogoTeseter nodejs简易版",
+  "main": "index",
+  "author": {
+    "name": "subying"
+  },
+  "version": "0.1",
+  "bugs": {
+    "url": "https://github.com/caolan/async/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT"
+    }
+  ],
+  "devDependencies": {
+  }
+}
