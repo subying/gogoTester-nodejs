@@ -4,7 +4,8 @@ var iptables = require('./ip.js');
 var http = require("http");
 var https = require('https');
 var async = require('async');
-var util = require('util')
+var util = require('util');
+var fs = require('fs');
 
 var checkIpPad =  {
     index:0  //当前第几个
@@ -23,10 +24,25 @@ var checkIpPad =  {
             ,_num = _self.getRandom(0,_self.len-1)
             ,_str = _self.arr[_num];
         ;
+        _self.index = _num;
+        _self._cacheIndex = _self._cacheIndex + '_'+_num+'_';
+
         _self.checkStr(_str);
     }
     ,getRandom:function(t1,t2){//获取随机数
-        return Math.floor(Math.random()*(t2-t1)+t1);
+    	var _self = this
+    		,_num = Math.floor(Math.random()*(t2-t1)+t1)
+    		,_flag = true
+    		,_cache = _self._cacheIndex
+    	;
+    	while(_flag){ 
+    		if(_cache.indexOf('_'+_num+'_')===-1){ 
+    			_flag = false;
+    		}else{ 
+    			_num = Math.floor(Math.random()*(t2-t1)+t1);
+    		}
+    	}
+        return _num;
     }
     ,checkStr:function(str){//检查并转换
         var arr = str.split('.')
@@ -55,6 +71,7 @@ var checkIpPad =  {
     }
     ,len:0//iplist 总长度 多少个
     ,arr:[]//iplist
+    ,_cacheIndex:'_'
     ,_ipStr:''//当前执行的ip段
     ,addGoodIp:function(ip){
         var _self = this;
@@ -64,10 +81,27 @@ var checkIpPad =  {
     ,reqList:[]//请求对象列表
     ,timeout:1000
     ,threadNum:10 //同时执行多少个任务
+    ,ipNum:5 //至少要找到多少个ip
     ,finishTask:function(){ //任务执行完
+    	var _self = this
+    		,_result = _self.result
+    	;
+
         util.log('all tasks have been processed');
 
-        console.log(checkIpPad.result);
+        console.log(_self._ipStr);
+        console.log(_result);
+
+        //如果可以的IP数量 不满足设置的值
+        if(_result.length<_self.ipNum){ 
+        	_self.randomCheck();
+        }else{
+        	_self.writeToTxt(_result);
+        }
+        
+    }
+    ,writeToTxt:function(result){
+    	fs.writeFileSync('iplist.txt',result.join('|'),'utf8');
     }
 }
 
