@@ -9,6 +9,7 @@ var fs = require('fs');
 
 var checkIpPad =  {
     index:0  //当前第几个
+    ,isInit:false //是否初始化
     ,init:function(iplist){//初始化方法
         var _self  = this;
 
@@ -16,17 +17,40 @@ var checkIpPad =  {
         _self.arr = iplist;
         _self.len = iplist.length;
 
-        //执行随机查询
-        _self.randomCheck();
+
+        if(_self.checkType==='random'){
+            //执行随机查询
+            _self.randomCheck();
+        }else{
+            //执行按顺序查询
+            _self.listCheck();
+        }
+
+        _self.isInit = true;
     }
     ,randomCheck:function(){//随机查询
         var _self = this
             ,_num = _self.getRandom(0,_self.len-1)
             ,_str = _self.arr[_num];
         ;
+        _self.checkType='random';
         _self.index = _num;
         _self._cacheIndex = _self._cacheIndex + '_'+_num+'_';
 
+        _self.checkStr(_str);
+    }
+    ,listCheck:function(){//顺序查找
+        var _self = this
+            ,_num = _self.isInit?_self.index+1:0
+            ,_str
+        ;
+        if(_num>=_self.len){
+            return false;
+        }
+
+        _self.checkType='list';
+        _self.index = _num;
+        _str = _self.arr[_num];
         _self.checkStr(_str);
     }
     ,getRandom:function(t1,t2){//获取随机数
@@ -35,10 +59,10 @@ var checkIpPad =  {
     		,_flag = true
     		,_cache = _self._cacheIndex
     	;
-    	while(_flag){ 
-    		if(_cache.indexOf('_'+_num+'_')===-1){ 
+    	while(_flag){
+    		if(_cache.indexOf('_'+_num+'_')===-1){
     			_flag = false;
-    		}else{ 
+    		}else{
     			_num = Math.floor(Math.random()*(t2-t1)+t1);
     		}
     	}
@@ -73,6 +97,7 @@ var checkIpPad =  {
     ,arr:[]//iplist
     ,_cacheIndex:'_'
     ,_ipStr:''//当前执行的ip段
+    ,checkType:'list' //查找的方式  random 随机查询  list是按顺序查询
     ,addGoodIp:function(ip){
         var _self = this;
         _self.result.push(ip);
@@ -93,12 +118,12 @@ var checkIpPad =  {
         console.log(_result);
 
         //如果可以的IP数量 不满足设置的值
-        if(_result.length<_self.ipNum){ 
-        	_self.randomCheck();
+        if(_result.length<_self.ipNum){
+        	_self[_self.checkType+'Check']();
         }else{
         	_self.writeToTxt(_result);
         }
-        
+
     }
     ,writeToTxt:function(result){
     	fs.writeFileSync('iplist.txt',result.join('|'),'utf8');
