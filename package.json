@@ -5,9 +5,8 @@
   "author": {
     "name": "subying"
   },
-  "version": "0.1.0",
+  "version": "0.1.1",
   "bugs": {
-    "url": "https://github.com/caolan/async/issues"
   },
   "licenses": [
     {

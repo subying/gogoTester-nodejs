@@ -168,37 +168,47 @@ function httpGet(ip,cb){
     }
 
     req.on('response',function(res){
-        var html = '';
-        res.setEncoding('utf-8');
-        res.on('data',function(data){//图片加载到内存变量
-            html += data;
-        })
-        .on('end',function(){//加载完毕保存图片
-            //修改了判断，从网页标题改成response header信息中server的判断
-            //if(html.indexOf('<title>Google</title>')>-1){
-            if(res.headers.server === 'gws'){
-                //console.log('it ok=='+ip);
-                checkIpPad.addGoodIp(ip);
-            }
-            stopRes();
-        })
-        .on('error',function(e){
-            console.log(e.message);
-        })
-        .on('close',function(){
-            stopRes();
-        })
-        .setTimeout(checkIpPad.timeout,function(){
-            stopRes();
-            console.log('timeout=='+ip);
-        })
-        ;
+        /*
+            var html = '';
+            res.setEncoding('utf-8');
+            res.on('data',function(data){//图片加载到内存变量
+                html += data;
+            })
+            .on('end',function(){//加载完毕保存图片
+                //修改了判断，从网页标题改成response header信息中server的判断
+                //if(html.indexOf('<title>Google</title>')>-1){
+                if(res.headers.server === 'gws'){
+                    //console.log('it ok=='+ip);
+                    checkIpPad.addGoodIp(ip);
+                }
+                stopRes();
+            })
+            .on('error',function(e){
+                console.log(e.message);
+            })
+            .on('close',function(){
+                stopRes();
+            })
+            .setTimeout(checkIpPad.timeout,function(){
+                stopRes();
+                console.log('timeout=='+ip);
+            })
+            ;
 
-        function stopRes(){
-            res.destroy();
-            req.abort();
-            endAysnc();
+            function stopRes(){
+                res.destroy();
+                req.abort();
+                endAysnc();
+            }
+        */
+
+        //修改了判断，直接用header信息中server的判断，加快了判断速度
+        if(res.headers.server === 'gws'){
+            checkIpPad.addGoodIp(ip);
         }
+        res.destroy();
+        req.abort();
+        endAysnc();
     })
     .on('error',function(err){
         //console.log('err=='+ip);
