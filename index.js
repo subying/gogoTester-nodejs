@@ -8,7 +8,7 @@ var util = require('util');
 var fs = require('fs');
 
 var checkIpPad =  {
-    index:0  //当前第几个
+    index:0 //当前第几个
     ,isInit:false //是否初始化
     ,init:function(iplist){//初始化方法
         var _self  = this;
@@ -41,7 +41,7 @@ var checkIpPad =  {
     }
     ,listCheck:function(){//顺序查找
         var _self = this
-            ,_num = _self.isInit?_self.index+1:0
+            ,_num = _self.isInit?_self.index+1:_self.index
             ,_str
         ;
         if(_num>=_self.len){
@@ -105,7 +105,7 @@ var checkIpPad =  {
     ,result:[]//结果  可用的ip
     ,reqList:[]//请求对象列表
     ,timeout:1000
-    ,threadNum:10 //同时执行多少个任务
+    ,threadNum:15 //同时执行多少个任务
     ,ipNum:5 //至少要找到多少个ip
     ,finishTask:function(){ //任务执行完
     	var _self = this
@@ -174,7 +174,9 @@ function httpGet(ip,cb){
             html += data;
         })
         .on('end',function(){//加载完毕保存图片
-            if(html.indexOf('<title>Google</title>')>-1){
+            //修改了判断，从网页标题改成response header信息中server的判断
+            //if(html.indexOf('<title>Google</title>')>-1){
+            if(res.headers.server === 'gws'){
                 //console.log('it ok=='+ip);
                 checkIpPad.addGoodIp(ip);
             }
