@@ -126,7 +126,32 @@ var checkIpPad =  {
 
     }
     ,writeToTxt:function(result){
-    	fs.writeFileSync('iplist.txt',result.join('|'),'utf8');
+      var _self = this
+        ,_str = result.join('|')
+      ;
+    	fs.writeFileSync('iplist.txt',_str,'utf8');
+      _self.replaceFile(_str);
+    }
+    ,proxyFile:'proxy.ini' //goagent中proxy.ini 文件的位置
+    ,replaceFile:function(str){ //替换proxy.ini中的google_hk内容
+      var _self = this
+        ,_file = _self.proxyFile
+        ,_con = ''
+        ,_start = 0
+        ,_end = 0
+        ,_recon = ''
+      ;
+      if(!fs.existsSync(_file)){
+          util.log(_file+'不存在！');
+          return false;
+      }
+
+      _con = fs.readFileSync(_file,'utf8');
+      _start = _con.indexOf('google_hk');
+      _end = _con.indexOf('google_talk');
+      _recon = _con.slice(_start,_end);
+      _con = _con.replace(_recon,'google_hk ='+str+'\n');
+      fs.writeFileSync(_file,_con,'utf8');
     }
 }
 
