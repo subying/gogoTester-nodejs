@@ -70,12 +70,12 @@ var checkIpPad =  {
     }
     ,checkStr:function(str){//检查并转换
         var arr = str.split('.')
-        ,_ipStr = arr[0]+'.'+arr[1]+'.'+arr[2]+'.'
-        ,_range = arr[3].split('-')
-        ,_start = _range[0]
-        ,_end = _range[1]
-        ,i = _start
-        ,_self = this
+            ,_ipStr = arr[0]+'.'+arr[1]+'.'+arr[2]+'.'
+            ,_range = arr[3].split('-')
+            ,_start = _range[0] || 1
+            ,_end = _range[1]
+            ,i = _start
+            ,_self = this
         ;
         _self._ipStr = _ipStr;
         for(;i<_end;i++){
@@ -186,65 +186,28 @@ function httpGet(ip,cb){
     ;
 
     function endAysnc(){
+        req.abort();
+
         if(!err){
-            cb(req);
             err = true;
+            cb();
         }
     }
 
     req.on('response',function(res){
-        /*
-            var html = '';
-            res.setEncoding('utf-8');
-            res.on('data',function(data){//图片加载到内存变量
-                html += data;
-            })
-            .on('end',function(){//加载完毕保存图片
-                //修改了判断，从网页标题改成response header信息中server的判断
-                //if(html.indexOf('<title>Google</title>')>-1){
-                if(res.headers.server === 'gws'){
-                    //console.log('it ok=='+ip);
-                    checkIpPad.addGoodIp(ip);
-                }
-                stopRes();
-            })
-            .on('error',function(e){
-                console.log(e.message);
-            })
-            .on('close',function(){
-                stopRes();
-            })
-            .setTimeout(checkIpPad.timeout,function(){
-                stopRes();
-                console.log('timeout=='+ip);
-            })
-            ;
-
-            function stopRes(){
-                res.destroy();
-                req.abort();
-                endAysnc();
-            }
-        */
-
         //修改了判断，直接用header信息中server的判断，加快了判断速度
         if(res.headers.server === 'gws'){
             checkIpPad.addGoodIp(ip);
         }
         res.destroy();
-        req.abort();
+
         endAysnc();
     })
     .on('error',function(err){
-        //console.log('err=='+ip);
-        req.abort();
-
         endAysnc();
+        //throw err;
     })
     .setTimeout(checkIpPad.timeout,function(){
-        //console.log('time out=='+ip);
-        req.abort();
-
         endAysnc();
     });
 
