@@ -2241,6 +2241,7 @@ iptables.push("64.15.125.0-255");
 iptables.push("64.15.126.0-255");
 iptables.push("64.15.127.0-255");
 iptables.push("64.233.160.0-255");
+iptables.push("64.233.162.0-255");
 iptables.push("64.233.164.0-255");
 iptables.push("64.233.165.0-255");
 iptables.push("64.233.168.0-255");

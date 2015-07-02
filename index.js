@@ -37,6 +37,7 @@ var checkIpPad =  {
         _self.index = _num;
         _self._cacheIndex = _self._cacheIndex + '_'+_num+'_';
 
+
         _self.checkStr(_str);
     }
     ,listCheck:function(){//顺序查找
@@ -88,7 +89,7 @@ var checkIpPad =  {
         ;
         q.push({name:'task-'+i, run: function(cb){
             util.log('t'+ i +' is running, waiting tasks: '+ q.length());
-            _self.reqList[i] = httpGet(_ipStr+i,cb);
+            _self.reqList[i] = httpsGet(_ipStr+i,cb);
         }}, function(err) {//执行完成
             util.log('t'+ i +' executed');
         });
@@ -97,7 +98,7 @@ var checkIpPad =  {
     ,arr:[]//iplist
     ,_cacheIndex:'_'
     ,_ipStr:''//当前执行的ip段
-    ,checkType:'list' //查找的方式  random 随机查询  list是按顺序查询
+    ,checkType:'random' //查找的方式  random 随机查询  list是按顺序查询
     ,addGoodIp:function(ip){
         var _self = this;
         _self.result.push(ip);
@@ -121,16 +122,17 @@ var checkIpPad =  {
         if(_result.length<_self.ipNum){
         	_self[_self.checkType+'Check']();
         }else{
+            console.log(_result.length);
         	_self.writeToTxt(_result);
         }
 
     }
     ,writeToTxt:function(result){
-      var _self = this
-        ,_str = result.join('|')
-      ;
-    	fs.writeFileSync('iplist.txt',_str,'utf8');
-      _self.replaceFile(_str);
+        var _self = this
+            ,_str = result.join('|')
+        ;
+        fs.writeFileSync('iplist.txt',_str,'utf8');
+        _self.replaceFile(_str);
     }
     ,proxyFile:'proxy.ini' //goagent中proxy.ini 文件的位置
     ,replaceFile:function(str){ //替换proxy.ini中的google_hk内容
@@ -212,6 +214,72 @@ function httpGet(ip,cb){
     });
 
     return req;
+}
+
+
+function httpsGet(ip,cb){
+    var httpsOptions = {
+            hostname: ip,
+            port: 443,
+            path: '/',
+            method: 'GET',
+            cert: fs.readFileSync('cacert.pem')
+        },
+        req,err=false
+    ;
+    function endAysnc(){
+        if(req && req.abort){
+            req.abort();
+        }
+        
+
+        if(!err){
+            err = true;
+            cb();
+        }
+    }
+    try{
+        req = https.request(httpsOptions, function(res) {
+            console.log(ip,res.status);
+
+            res.destroy();
+
+            checkIpPad.addGoodIp(ip);//加入
+            cb();
+        });
+        req.on('error',function(err){
+            var cert, i, item, len, flag=false, subjectaltname;
+            cert = err.cert || {};
+            subjectaltname = cert.subjectaltname || [];
+
+            if (subjectaltname.length) {
+                subjectaltname = subjectaltname.split(',');
+                results = [];
+                for (i = 0, len = subjectaltname.length; i < len; i++) {
+                    item = subjectaltname[i];
+                    if(item.indexOf('accounts.google.com')>-1){
+                        flag = true;
+                        continue;
+                    }
+                }
+            }
+
+            if(flag){
+                checkIpPad.addGoodIp(ip);//加入
+                endAysnc();
+            }else{ 
+                //httpGet(ip,cb);
+                endAysnc();
+            }
+        })
+        .setTimeout(1000,function(){
+            endAysnc();
+        })
+        ;
+
+    }catch(err){
+        endAysnc();
+    }
 }
 
 
